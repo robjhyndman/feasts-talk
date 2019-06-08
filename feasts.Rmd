@@ -1,39 +1,185 @@
 ---
-title: "A feast of time series tools"
-author: "Rob J Hyndman and Mitchell O'Hara-Wild"
+title: "A feast of time&nbsp;series&nbsp;tools"
+author: "Rob J Hyndman & Mitchell&nbsp;O'Hara-Wild"
 date: "June 2019"
-fontsize: 14pt
+colortheme: monashblue
+titlefontsize: 22pt
+toc: true
 output:
-  beamer_presentation:
-    fig_height: 5
-    fig_width: 8
-    highlight: tango
+  binb::monash:
     incremental: no
+    fig_height: 3.8
     keep_tex: yes
-    theme: metropolis
     includes:
       in_header: preamble.tex
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = FALSE, message=FALSE, warning=FALSE, cache=TRUE,
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE,
   dev.args=list(bg=grey(0.9), pointsize=11))
 library(tidyverse)
+library(lubridate)
 library(tsibble)
 library(tsibbledata)
 library(feasts)
-options(digits=3,width=63)
+options(digits=3,width=60)
 ```
 
-# Acknowledgements
+# Overview
+
+## Tidyverts packages
+
+\begin{textblock}{3.8}(8,0)\begin{alertblock}{}\Large\textbf{tidyverts.org}\end{alertblock}\end{textblock}
+
+\placefig{1}{1.4}{width=4cm}{tsibble.png}
+\placefig{5}{1.4}{width=4cm}{tsibbledata.png}
+\placefig{3}{4.85}{width=4cm}{feasts.png}
+\placefig{7}{4.85}{width=4cm}{fable.png}
+
+## Overview
+
+\placefig{.2}{1.5}{width=4cm}{feasts.png}
+
+\begin{textblock}{7.7}(4.7,1.5)\large
+\begin{block}{\large \textcolor{DarkYellow}{F}eature \textcolor{DarkYellow}{E}xtraction \textcolor{DarkYellow}{A}nd \textcolor{DarkYellow}{S}tatistics for \textcolor{DarkYellow}{T}ime \textcolor{DarkYellow}{S}eries}
+\begin{itemize}
+\item works with tidy temporal data provided by the tsibble package.
+\item produces time series features, decompositions, statistical summaries and visualisations.
+\end{itemize}
+\end{block}
+\end{textblock}
+
+
+# Time series in R
+
+
+## `tsibble` objects
+
+A `tsibble` allows storage and manipulation of time series in R.
+
+It contains:
+
+- Measured variable(s): numbers of interest
+- Key variable(s): unique identifiers for each series
+- An index: time information about the observation
+
+
+## Australian Exports
+
+\fontsize{11}{13}\sf
+
+```{r, echo = TRUE}
+global_economy
+```
+
+
+## Australian Exports
+
+\fontsize{11}{13}\sf
+
+```{r, echo = TRUE}
+global_economy %>% filter(Country=="Australia")
+```
+
+
+## Australian Exports
+
+\fontsize{11}{13}\sf
+
+```{r, echo = TRUE}
+global_economy %>% filter(Country=="Australia") %>%
+  autoplot(Exports)
+```
+
+
+# Graphics
+
+## Graphics
+
+```{r graphics1}
+aus_production %>% gg_season(Beer)
+```
+
+## Graphics
+
+```{r graphics2}
+aus_production %>% gg_subseries(Beer)
+```
+
+## Graphics
+
+```{r graphics3}
+aus_production %>% filter(year(Quarter) > 1991) %>% gg_lag(Beer)
+```
+
+## Graphics
+
+```{r graphics4}
+aus_production %>% ACF(Beer) %>% autoplot()
+```
+
+## Decompositions
+
+A common task in time series analysis is decomposing a time series into some simpler components. The feasts package supports four common time series decomposition methods:
+
+* Classical decomposition
+* STL decomposition
+* X11 decomposition
+* X-13ARIMA-SEATS decomposition
+
+```{r dcmp}
+aus_production %>% STL(Beer ~ season(window = Inf))
+```
+```{r dcmp-plot}
+aus_production %>% STL(Beer ~ season(window = Inf)) %>% autoplot()
+```
+
+## Feature extraction and statistics
+
+Extract features and statistics across a large collection of time series to identify unusual/extreme time series, or find clusters of similar behaviour.
+
+```{r features}
+aus_retail %>%
+  features(Turnover, features_stl)
+```
+
+This allows you to visualise the behaviour of many time series (where the plotting methods above would show too much information).
+
+```{r features-plot}
+aus_retail %>%
+  features(Turnover, features_stl) %>%
+  ggplot(aes(x = trend_strength, y = seasonal_strength_year)) +
+  geom_point() +
+  facet_wrap(vars(State))
+```
+
+Most of Australian's retail industries are highly trended and seasonal for all states.
+
+It's also easy to extract the most (and least) seasonal time series.
+
+```{r extreme}
+extreme_seasonalities <- aus_retail %>%
+  features(Turnover, features_stl) %>%
+  filter(seasonal_strength_year %in% range(seasonal_strength_year))
+aus_retail %>%
+  right_join(extreme_seasonalities, by = c("State", "Industry")) %>%
+  ggplot(aes(x = Month, y = Turnover)) +
+  geom_line() +
+  facet_grid(vars(State, Industry, scales::percent(seasonal_strength_year)),
+             scales = "free_y")
+```
+
+
+
+## Acknowledgements
 
 
 ###
 \fontsize{11}{11}\sf
-\centering\begin{tabular}{p{3.5cm}p{3.6cm}p{3.5cm}}
+\centering\begin{tabular}{p{3.1cm}ll}
 \includegraphics[height=3cm]{earowang} &
 \includegraphics[height=3cm]{mitch} &
-\includegraphics[height=3cm]{di} \\
+\includegraphics[height=3cm]{dicook} \\
 Earo Wang  &
 Mitchell O'Hara-Wild &
 Di Cook  \\
