@@ -2,3 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
+feasts_cache/
+feasts_files
+feasts.log
+feasts.tex
+.directory
