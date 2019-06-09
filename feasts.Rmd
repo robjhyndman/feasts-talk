@@ -8,21 +8,39 @@ toc: true
 output:
   binb::monash:
     incremental: no
-    fig_height: 3.8
+    fig_height: 4.8
     keep_tex: yes
     includes:
       in_header: preamble.tex
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE, cache=TRUE,
-  dev.args=list(bg=grey(0.9), pointsize=11))
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
+  dev.args = list(bg = grey(0.9), pointsize = 11)
+)
 library(tidyverse)
 library(lubridate)
 library(tsibble)
 library(tsibbledata)
 library(feasts)
-options(digits=3,width=60)
+options(digits = 3, width = 60)
+global_economy <- global_economy %>%
+  select(Year, Country, GDP, Imports, Exports, Population)
+aus_retail <- aus_retail %>%
+  select(Month, State, Industry, Turnover) %>%
+  mutate(
+    State = recode(State, 
+                   "Australian Capital Territory" = "ACT",
+                   "New South Wales"="NSW", 
+                   "Northern Territory" = "NT",
+                   "Queensland" = "QLD",
+                   "South Australia" = "SA",
+                   "Tasmania" = "TAS",
+                   "Victoria"="VIC",
+                   "Western Australia" = "WA"
+    )
+  )
 ```
 
 # Overview
@@ -41,7 +59,7 @@ options(digits=3,width=60)
 \placefig{.2}{1.5}{width=4cm}{feasts.png}
 
 \begin{textblock}{7.7}(4.7,1.5)\large
-\begin{block}{\large \textcolor{DarkYellow}{F}eature \textcolor{DarkYellow}{E}xtraction \textcolor{DarkYellow}{A}nd \textcolor{DarkYellow}{S}tatistics for \textcolor{DarkYellow}{T}ime \textcolor{DarkYellow}{S}eries}
+\begin{block}{\fontsize{20}{20}\sf\bfseries\textcolor{DarkYellow}{F}eature \textcolor{DarkYellow}{E}xtraction \textcolor{DarkYellow}{A}nd \textcolor{DarkYellow}{S}tatistics for \textcolor{DarkYellow}{T}ime \textcolor{DarkYellow}{S}eries}
 \begin{itemize}
 \item works with tidy temporal data provided by the tsibble package.
 \item produces time series features, decompositions, statistical summaries and visualisations.
@@ -50,125 +68,177 @@ options(digits=3,width=60)
 \end{textblock}
 
 
-# Time series in R
-
+# Tsibbles
 
 ## `tsibble` objects
 
-A `tsibble` allows storage and manipulation of time series in R.
-
-It contains:
-
-- Measured variable(s): numbers of interest
-- Key variable(s): unique identifiers for each series
-- An index: time information about the observation
-
-
-## Australian Exports
-
-\fontsize{11}{13}\sf
+\fontsize{10}{11.2}\sf
 
 ```{r, echo = TRUE}
 global_economy
 ```
 
+\only<2->{\begin{textblock}{.75}(2.15,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Index\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<3->{\begin{textblock}{1.6}(3.28,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Key\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<4>{\begin{textblock}{6.7}(5.5,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Measured variables\phantom{dg}\end{alertblock}
+\end{textblock}}
 
-## Australian Exports
 
-\fontsize{11}{13}\sf
+## `tsibble` objects
+
+\fontsize{10}{11.2}\sf
 
 ```{r, echo = TRUE}
-global_economy %>% filter(Country=="Australia")
+aus_retail
 ```
 
+\only<2->{\begin{textblock}{1.2}(2.3,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Index\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<3->{\begin{textblock}{6.3}(3.95,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Keys\phantom{dg}\end{alertblock}
+\end{textblock}}
+\only<4>{\begin{textblock}{1.5}(11,3.7)
+\begin{alertblock}{}\fontsize{10}{10}\sf Measure\phantom{dg}\end{alertblock}
+\end{textblock}}
 
-## Australian Exports
 
-\fontsize{11}{13}\sf
+## Pharmaceutical expenditure
+
+\fontsize{9}{10}\sf
 
 ```{r, echo = TRUE}
-global_economy %>% filter(Country=="Australia") %>%
-  autoplot(Exports)
+pharma <- aus_retail %>%
+  filter(
+    State %in% c("VIC", "NSW"),
+    str_detect(Industry, "Pharmaceutical")
+  ) %>%
+  select(-Industry)
+```
+
+```{r, echo=FALSE}
+pharma
 ```
 
 
 # Graphics
 
-## Graphics
+## Time plots
+
+\fontsize{9}{10}\sf
+
+```{r, echo = TRUE}
+pharma %>% autoplot(Turnover)
+```
+
+## Season plots
+\fontsize{9}{10}\sf
 
 ```{r graphics1}
-aus_production %>% gg_season(Beer)
+pharma %>% gg_season(log(Turnover))
 ```
 
 ## Graphics
+\fontsize{9}{10}\sf
 
 ```{r graphics2}
-aus_production %>% gg_subseries(Beer)
+pharma %>% gg_subseries(log(Turnover))
 ```
 
 ## Graphics
+\fontsize{9}{10}\sf
 
-```{r graphics3}
-aus_production %>% filter(year(Quarter) > 1991) %>% gg_lag(Beer)
+```{r graphics3, fig.height=5.5, fig.width=5.5, out.width="65%"}
+pharma %>% filter(State == "VIC") %>% gg_lag(Turnover)
 ```
 
 ## Graphics
+\fontsize{9}{10}\sf
 
 ```{r graphics4}
-aus_production %>% ACF(Beer) %>% autoplot()
+pharma %>% ACF(difference(log(Turnover), 12)) %>%
+  autoplot()
 ```
+
+# Decompositions
 
 ## Decompositions
 
-A common task in time series analysis is decomposing a time series into some simpler components. The feasts package supports four common time series decomposition methods:
+The feasts package supports four common time series decomposition methods:
 
 * Classical decomposition
 * STL decomposition
 * X11 decomposition
 * X-13ARIMA-SEATS decomposition
 
-```{r dcmp}
-aus_production %>% STL(Beer ~ season(window = Inf))
-```
+## Decompositions
+\fontsize{9}{10}\sf
+
 ```{r dcmp-plot}
-aus_production %>% STL(Beer ~ season(window = Inf)) %>% autoplot()
+pharma %>% STL(log(Turnover) ~ season(window = "periodic")) %>%
+  autoplot()
 ```
+
+# Features
 
 ## Feature extraction and statistics
 
-Extract features and statistics across a large collection of time series to identify unusual/extreme time series, or find clusters of similar behaviour.
+\fontsize{9}{10}\sf
 
 ```{r features}
 aus_retail %>%
   features(Turnover, features_stl)
 ```
 
-This allows you to visualise the behaviour of many time series (where the plotting methods above would show too much information).
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
 
-```{r features-plot}
+```{r features-plot, fig.height=4.3}
 aus_retail %>%
   features(Turnover, features_stl) %>%
   ggplot(aes(x = trend_strength, y = seasonal_strength_year)) +
-  geom_point() +
-  facet_wrap(vars(State))
+    geom_point() + facet_wrap(vars(State))
 ```
 
-Most of Australian's retail industries are highly trended and seasonal for all states.
+\only<2->{\begin{textblock}{3.8}(8.7,7.3)
+\begin{alertblock}{}\fontsize{10}{11}\sf Most of Australian's retail industries are highly trended and seasonal for all states.
+\end{alertblock}\end{textblock}}
 
-It's also easy to extract the most (and least) seasonal time series.
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
 
-```{r extreme}
-extreme_seasonalities <- aus_retail %>%
+Find the most seasonal time series:
+
+```{r extreme, fig.height=3.3}
+most_seasonal <- aus_retail %>%
   features(Turnover, features_stl) %>%
-  filter(seasonal_strength_year %in% range(seasonal_strength_year))
+  filter(seasonal_strength_year == max(seasonal_strength_year))
 aus_retail %>%
-  right_join(extreme_seasonalities, by = c("State", "Industry")) %>%
-  ggplot(aes(x = Month, y = Turnover)) +
-  geom_line() +
-  facet_grid(vars(State, Industry, scales::percent(seasonal_strength_year)),
-             scales = "free_y")
+  right_join(most_seasonal, by = c("State", "Industry")) %>%
+  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
+  facet_grid(vars(State,Industry))
 ```
 
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+Find the least trended time series:
+
+```{r extreme2, fig.height=3.3}
+least_trend <- aus_retail %>%
+  features(Turnover, features_stl) %>%
+  filter(trend_strength == min(trend_strength))
+aus_retail %>%
+  right_join(least_trend, by = c("State", "Industry")) %>%
+  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
+  facet_grid(vars(State,Industry))
+```
 
 
 ## Acknowledgements
