@@ -161,8 +161,17 @@ pharma %>% filter(State == "VIC") %>% gg_lag(Turnover)
 \fontsize{9}{10}\sf
 
 ```{r graphics4}
-pharma %>% ACF(difference(log(Turnover), 12)) %>%
-  autoplot()
+pharma %>% ACF(difference(log(Turnover), 12)) %>% autoplot()
+```
+
+## Time series displays
+
+\fontsize{9}{10}\sf
+
+```{r, echo = TRUE, fig.height=4.5}
+pharma %>% filter(State=="VIC") %>% 
+  mutate(seas_diff = difference(log(Turnover), lag=12)) %>%
+  gg_tsdisplay(seas_diff, plot_type="histogram")
 ```
 
 # Decompositions
@@ -191,16 +200,14 @@ pharma %>% STL(log(Turnover) ~ season(window = "periodic")) %>%
 \fontsize{9}{10}\sf
 
 ```{r features}
-aus_retail %>%
-  features(Turnover, features_stl)
+aus_retail %>% features(Turnover, features_stl)
 ```
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-```{r features-plot, fig.height=4.3}
-aus_retail %>%
-  features(Turnover, features_stl) %>%
+```{r features-plot, fig.height=4.6}
+aus_retail %>% features(Turnover, features_stl) %>%
   ggplot(aes(x = trend_strength, y = seasonal_strength_year)) +
     geom_point() + facet_wrap(vars(State))
 ```
@@ -214,10 +221,15 @@ aus_retail %>%
 
 Find the most seasonal time series:
 
-```{r extreme, fig.height=3.3}
+```{r extreme}
 most_seasonal <- aus_retail %>%
   features(Turnover, features_stl) %>%
   filter(seasonal_strength_year == max(seasonal_strength_year))
+```
+
+\pause\vspace*{-0.3cm}
+
+```{r extreme2, fig.height=3.2}
 aus_retail %>%
   right_join(most_seasonal, by = c("State", "Industry")) %>%
   ggplot(aes(x = Month, y = Turnover)) + geom_line() +
@@ -228,31 +240,50 @@ aus_retail %>%
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-Find the least trended time series:
+\begin{textblock}{5}(7,5)
+\begin{alertblock}{}\normalsize
+Principal components based on STL, ACF and PACF features
+\end{alertblock}
+\end{textblock}
 
-```{r extreme2, fig.height=3.3}
-least_trend <- aus_retail %>%
-  features(Turnover, features_stl) %>%
-  filter(trend_strength == min(trend_strength))
-aus_retail %>%
-  right_join(least_trend, by = c("State", "Industry")) %>%
-  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
-  facet_grid(vars(State,Industry))
+```{r pca, fig.height=3.8, fig.width=3.8, out.width="50%"}
+retail_features <- aus_retail %>%
+  features(Turnover, list(features_stl,features_acf,features_pacf))
+pcs <- retail_features %>% select(-State, -Industry) %>%
+  prcomp(scale=TRUE) %>% augment(retail_features)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) + geom_point()
 ```
 
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+```{r outliers, fig.height=3.99}
+outliers <- pcs %>% filter(.fittedPC1 > 5)
+aus_retail %>%
+  right_join(outliers, by = c("State", "Industry")) %>%
+  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
+    facet_grid(vars(State,Industry)) +
+    ggtitle("Outlying time series in PC space")
+```
 
 ## Acknowledgements
 
 
-###
+\begin{block}{}
 \fontsize{11}{11}\sf
-\centering\begin{tabular}{p{3.1cm}ll}
-\includegraphics[height=3cm]{earowang} &
-\includegraphics[height=3cm]{mitch} &
-\includegraphics[height=3cm]{dicook} \\
-Earo Wang  &
+\centering\begin{tabular}{l@{\hspace*{1cm}}l}
+\includegraphics[height=4cm, width=10cm]{mitch} &
+\includegraphics[height=4cm, width=10cm]{earowang} \\
 Mitchell O'Hara-Wild &
-Di Cook  \\
+Earo Wang \\
 \end{tabular}
+\end{block}
 
+\vspace*{1cm}
 
+\begin{alertblock}{}
+\centerline{\textbf{feasts.tidyverts.org}}
+\centerline{\textbf{robjhyndman.com}}
+\end{alertblock}
+
+\vspace*{10cm}
