@@ -153,25 +153,8 @@ pharma %>% gg_subseries(log(Turnover))
 ## Graphics
 \fontsize{9}{10}\sf
 
-```{r graphics3, fig.height=5.5, fig.width=5.5, out.width="65%"}
-pharma %>% filter(State == "VIC") %>% gg_lag(Turnover)
-```
-
-## Graphics
-\fontsize{9}{10}\sf
-
 ```{r graphics4}
 pharma %>% ACF(difference(log(Turnover), 12)) %>% autoplot()
-```
-
-## Time series displays
-
-\fontsize{9}{10}\sf
-
-```{r, echo = TRUE, fig.height=4.5}
-pharma %>% filter(State=="VIC") %>% 
-  mutate(seas_diff = difference(log(Turnover), lag=12)) %>%
-  gg_tsdisplay(seas_diff, plot_type="histogram")
 ```
 
 # Decompositions
