@@ -30,9 +30,9 @@ global_economy <- global_economy %>%
 aus_retail <- aus_retail %>%
   select(Month, State, Industry, Turnover) %>%
   mutate(
-    State = recode(State, 
+    State = recode(State,
                    "Australian Capital Territory" = "ACT",
-                   "New South Wales"="NSW", 
+                   "New South Wales"="NSW",
                    "Northern Territory" = "NT",
                    "Queensland" = "QLD",
                    "South Australia" = "SA",
@@ -115,7 +115,7 @@ aus_retail
 ```{r, echo = TRUE}
 pharma <- aus_retail %>%
   filter(
-    State %in% c("VIC", "NSW"),
+  #  State %in% c("VIC", "NSW"),
     str_detect(Industry, "Pharmaceutical")
   ) %>%
   select(-Industry)
