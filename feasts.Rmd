@@ -19,7 +19,7 @@ editor_options:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE, message = FALSE, warning = FALSE, cache = TRUE,
-  dev.args = list(bg = grey(0.9), pointsize = 11)
+  dev.args = list(pointsize = 11)
 )
 library(tidyverse)
 library(lubridate)

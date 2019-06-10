@@ -4,3 +4,19 @@
 \fontsize{13}{15}\sf
 \usepackage[scale=0.85]{sourcecodepro}
 \DisableLigatures{encoding = T1, family = tt*}
+
+
+% Monash title page
+\setbeamerfont{title}{series=\bfseries,parent=structure,size={\fontsize{26}{30}}}
+\setbeamertemplate{title page}
+{\placefig{-0.01}{-0.01}{width=1.01\paperwidth,height=1.01\paperheight}{MonashTitleSlide}
+\begin{textblock}{7.5}(1,2)\fontsize{24}{30}\sf
+{\color{white}\raggedright\usebeamerfont{title}\par\inserttitle}
+\end{textblock}
+\begin{textblock}{7.5}(1,7.7)
+{\color{white}\raggedright{\insertauthor}}
+\end{textblock}
+\placefig{1}{4.4}{width=2.5cm}{tsibble.png}
+\placefig{3.5}{4.4}{width=2.5cm}{feasts.png}
+}
+
