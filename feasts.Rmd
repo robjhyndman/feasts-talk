@@ -248,7 +248,7 @@ endpdf <- function()
 }
 # Compute features
 tourism_features <- tourism %>%
-  features(Trips, list(features_stl,features_acf,features_pacf))
+  features(Trips, feature_set(pkgs="feasts"))
 # Compute PCs
 pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
   prcomp(scale=TRUE) %>% augment(tourism_features)
@@ -280,22 +280,22 @@ endpdf()
 
 ```{r tourismfeatures}
 tourism_features <- tourism %>%
-  features(Trips, list(features_stl,features_acf,features_pacf))
+  features(Trips, feature_set(pkgs="feasts"))
 ```
 
 ```{r echo=FALSE}
 tourism_features
 ```
 
+\begin{textblock}{2.5}(9.6,1.3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Features based on STL, ACF and PACF
+\end{alertblock}
+\end{textblock}
+
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
-
-\begin{textblock}{2.5}(9.6,2,4)
-\begin{alertblock}{}\fontsize{10}{12}\sf
-Principal components based on STL, ACF and PACF features
-\end{alertblock}
-\end{textblock}
 
 ```{r pcatable}
 pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
@@ -306,10 +306,16 @@ pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
 pcs
 ```
 
+\begin{textblock}{2.5}(9.6,3)
+\begin{alertblock}{}\fontsize{10}{12}\sf
+Principal components based on STL, ACF and PACF features
+\end{alertblock}
+\end{textblock}
+
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-\begin{textblock}{3.5}(.2,4)
+\begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
 Principal components based on STL, ACF and PACF features
 \end{alertblock}
@@ -320,7 +326,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
   geom_point() + theme(aspect.ratio=1)
 ```
 
-\placefig{4}{4}{height=5.4cm, width=10cm}{pca1}
+\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca1}
 \vspace*{10cm}
 
 
@@ -328,7 +334,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
 \fontsize{9}{9}\sf
 
 
-\begin{textblock}{3.5}(.2,4)
+\begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
 Principal components based on STL, ACF and PACF features
 \end{alertblock}
@@ -339,7 +345,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
   geom_point() + theme(aspect.ratio=1)
 ```
 
-\placefig{4}{4}{height=5.4cm, width=10cm}{pca2}
+\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca2}
 \vspace*{10cm}
 
 
@@ -347,7 +353,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
 \fontsize{9}{9}\sf
 
 
-\begin{textblock}{3.5}(.2,4)
+\begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
 Principal components based on STL, ACF and PACF features
 \end{alertblock}
@@ -358,8 +364,8 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
   geom_point() + theme(aspect.ratio=1)
 ```
 
-\only<1>{\placefig{4}{4}{height=5.4cm, width=10cm}{pca3}}
-\only<2>{\placefig{4}{4}{height=5.4cm, width=10cm}{pca4}}
+\only<1>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca3}}
+\only<2>{\placefig{4}{2.6}{height=6.4cm, width=12cm}{pca4}}
 \vspace*{10cm}
 
 
