@@ -289,7 +289,7 @@ tourism_features
 
 \begin{textblock}{2.5}(9.6,1.3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
-Features based on STL, ACF and PACF
+All features from the feasts package
 \end{alertblock}
 \end{textblock}
 
@@ -308,7 +308,7 @@ pcs
 
 \begin{textblock}{2.5}(9.6,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
-Principal components based on STL, ACF and PACF features
+Principal components based on all features from the feasts package
 \end{alertblock}
 \end{textblock}
 
@@ -317,7 +317,7 @@ Principal components based on STL, ACF and PACF features
 
 \begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
-Principal components based on STL, ACF and PACF features
+Principal components based on all features from the feasts package
 \end{alertblock}
 \end{textblock}
 
@@ -336,7 +336,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) +
 
 \begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
-Principal components based on STL, ACF and PACF features
+Principal components based on all features from the feasts package
 \end{alertblock}
 \end{textblock}
 
@@ -355,7 +355,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=State)) +
 
 \begin{textblock}{3.3}(.4,3)
 \begin{alertblock}{}\fontsize{10}{12}\sf
-Principal components based on STL, ACF and PACF features
+Principal components based on all features from the feasts package
 \end{alertblock}
 \end{textblock}
 
