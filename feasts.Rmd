@@ -12,6 +12,8 @@ output:
     keep_tex: yes
     includes:
       in_header: preamble.tex
+editor_options:
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -27,8 +29,7 @@ library(feasts)
 options(digits = 3, width = 60)
 global_economy <- global_economy %>%
   select(Year, Country, GDP, Imports, Exports, Population)
-aus_retail <- aus_retail %>%
-  select(Month, State, Industry, Turnover) %>%
+tourism <- tourism %>%
   mutate(
     State = recode(State,
                    "Australian Capital Territory" = "ACT",
@@ -41,6 +42,13 @@ aus_retail <- aus_retail %>%
                    "Western Australia" = "WA"
     )
   )
+holidays <- tourism %>%
+  filter(Purpose=="Visiting") %>%
+  group_by(State) %>%
+  summarise(
+    Trips = sum(Trips)
+  ) %>%
+  select(Quarter, State, Trips)
 ```
 
 # Overview
@@ -91,38 +99,36 @@ global_economy
 
 ## `tsibble` objects
 
-\fontsize{10}{11.2}\sf
+\fontsize{10}{11.3}\sf
 
 ```{r, echo = TRUE}
-aus_retail
+tourism
 ```
 
-\only<2->{\begin{textblock}{1.2}(2.3,3.7)
+\only<2->{\begin{textblock}{1.1}(2.1,3.7)
 \begin{alertblock}{}\fontsize{10}{10}\sf Index\phantom{dg}\end{alertblock}
 \end{textblock}}
-\only<3->{\begin{textblock}{6.3}(3.95,3.7)
+\only<3->{\begin{textblock}{3.9}(3.65,3.7)
 \begin{alertblock}{}\fontsize{10}{10}\sf Keys\phantom{dg}\end{alertblock}
 \end{textblock}}
-\only<4>{\begin{textblock}{1.5}(11,3.7)
+\only<4>{\begin{textblock}{1.5}(7.95,3.7)
 \begin{alertblock}{}\fontsize{10}{10}\sf Measure\phantom{dg}\end{alertblock}
 \end{textblock}}
 
 
-## Pharmaceutical expenditure
+## Holidays by state
 
 \fontsize{9}{10}\sf
 
-```{r, echo = TRUE}
-pharma <- aus_retail %>%
-  filter(
-  #  State %in% c("VIC", "NSW"),
-    str_detect(Industry, "Pharmaceutical")
-  ) %>%
-  select(-Industry)
+```r
+holidays <- tourism %>%
+  filter(Purpose=="Visiting") %>%
+  group_by(State) %>%
+  summarise(Trips = sum(Trips))
 ```
 
 ```{r, echo=FALSE}
-pharma
+holidays
 ```
 
 
@@ -133,28 +139,28 @@ pharma
 \fontsize{9}{10}\sf
 
 ```{r, echo = TRUE}
-pharma %>% autoplot(Turnover)
+holidays %>% autoplot(Trips)
 ```
 
 ## Season plots
 \fontsize{9}{10}\sf
 
 ```{r graphics1}
-pharma %>% gg_season(log(Turnover))
+holidays %>% gg_season(Trips)
 ```
 
 ## Graphics
 \fontsize{9}{10}\sf
 
 ```{r graphics2}
-pharma %>% gg_subseries(log(Turnover))
+holidays %>% gg_subseries(Trips)
 ```
 
 ## Graphics
 \fontsize{9}{10}\sf
 
 ```{r graphics4}
-pharma %>% ACF(difference(log(Turnover), 12)) %>% autoplot()
+holidays %>% ACF(difference(Trips, 4)) %>% autoplot()
 ```
 
 # Decompositions
@@ -172,7 +178,7 @@ The feasts package supports four common time series decomposition methods:
 \fontsize{9}{10}\sf
 
 ```{r dcmp-plot}
-pharma %>% STL(log(Turnover) ~ season(window = "periodic")) %>%
+holidays %>% STL(Trips ~ season(window = "periodic")) %>%
   autoplot()
 ```
 
@@ -183,20 +189,24 @@ pharma %>% STL(log(Turnover) ~ season(window = "periodic")) %>%
 \fontsize{9}{10}\sf
 
 ```{r features}
-aus_retail %>% features(Turnover, features_stl)
+tourism %>% features(Trips, features_stl)
 ```
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
 ```{r features-plot, fig.height=4.6}
-aus_retail %>% features(Turnover, features_stl) %>%
-  ggplot(aes(x = trend_strength, y = seasonal_strength_year)) +
+tourism %>% features(Trips, features_stl) %>%
+  ggplot(aes(x=trend_strength, y=seasonal_strength_year, col=Purpose)) +
     geom_point() + facet_wrap(vars(State))
 ```
 
-\only<2->{\begin{textblock}{3.8}(8.7,7.3)
-\begin{alertblock}{}\fontsize{10}{11}\sf Most of Australian's retail industries are highly trended and seasonal for all states.
+\only<2->{\begin{textblock}{4.7}(7.8,7.3)
+\begin{alertblock}{}\fontsize{10}{10}\sf
+\begin{itemize}\tightlist
+\item Holidays more seasonal than other travel.
+\item WA has strongest trends.
+\end{itemize}
 \end{alertblock}\end{textblock}}
 
 ## Feature extraction and statistics
@@ -205,48 +215,74 @@ aus_retail %>% features(Turnover, features_stl) %>%
 Find the most seasonal time series:
 
 ```{r extreme}
-most_seasonal <- aus_retail %>%
-  features(Turnover, features_stl) %>%
+most_seasonal <- tourism %>%
+  features(Trips, features_stl) %>%
   filter(seasonal_strength_year == max(seasonal_strength_year))
 ```
 
 \pause\vspace*{-0.3cm}
 
-```{r extreme2, fig.height=3.2}
-aus_retail %>%
-  right_join(most_seasonal, by = c("State", "Industry")) %>%
-  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
-  facet_grid(vars(State,Industry))
+```{r extreme2, fig.height=3.}
+tourism %>%
+  right_join(most_seasonal, by = c("State","Region","Purpose")) %>%
+  ggplot(aes(x = Quarter, y = Trips)) + geom_line() +
+  facet_grid(vars(State,Region,Purpose))
 ```
 
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-\begin{textblock}{5}(7,5)
+\begin{textblock}{5}(7.2,5)
 \begin{alertblock}{}\normalsize
 Principal components based on STL, ACF and PACF features
 \end{alertblock}
 \end{textblock}
 
-```{r pca, fig.height=3.8, fig.width=3.8, out.width="50%"}
-retail_features <- aus_retail %>%
-  features(Turnover, list(features_stl,features_acf,features_pacf))
-pcs <- retail_features %>% select(-State, -Industry) %>%
-  prcomp(scale=TRUE) %>% augment(retail_features)
+```{r pca, fig.height=3.8, fig.width=3.8, out.width="53%"}
+tourism_features <- tourism %>%
+  features(Trips, list(features_stl,features_acf,features_pacf))
+pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
+  prcomp(scale=TRUE) %>% augment(tourism_features)
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) + geom_point()
 ```
 
 ## Feature extraction and statistics
 \fontsize{9}{9}\sf
 
-```{r outliers, fig.height=3.99}
-outliers <- pcs %>% filter(.fittedPC1 > 5)
-aus_retail %>%
-  right_join(outliers, by = c("State", "Industry")) %>%
-  ggplot(aes(x = Month, y = Turnover)) + geom_line() +
-    facet_grid(vars(State,Industry)) +
-    ggtitle("Outlying time series in PC space")
+\begin{textblock}{5}(7.2,5)
+\begin{alertblock}{}\normalsize
+Principal components based on STL, ACF and PACF features
+\end{alertblock}
+\end{textblock}
+
+
+```r
+tourism_features <- tourism %>%
+  features(Trips, list(features_stl,features_acf,features_pacf))
+pcs <- tourism_features %>% select(-State, -Region, -Purpose) %>%
+  prcomp(scale=TRUE) %>% augment(tourism_features)
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) + geom_point()
+```
+
+```{r pca2, fig.height=3.8, fig.width=3.8, out.width="53%", echo=FALSE}
+outliers <- pcs %>%
+  filter(.fittedPC2 == min(.fittedPC2) | .fittedPC1 == max(.fittedPC1))
+pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2)) + geom_point() +
+  geom_point(data=outliers, aes(x=.fittedPC1, y=.fittedPC2), col=c('red','blue'), size=3)
+```
+
+## Feature extraction and statistics
+\fontsize{9}{9}\sf
+
+```{r outliers2, fig.height=3.4}
+tourism %>%
+  right_join(outliers, by = c("State", "Region", "Purpose")) %>%
+  ggplot(aes(x = Quarter, y = Trips)) +
+    geom_line(aes(color=.rownames)) +
+    facet_grid(vars(State,Region,Purpose)) +
+    ggtitle("Outlying time series in PC space") +
+    theme(legend.position = "none")
 ```
 
 ## Acknowledgements
