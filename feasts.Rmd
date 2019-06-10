@@ -399,7 +399,7 @@ pcs %>%
 \begin{block}{}
 \fontsize{11}{11}\sf
 \centering\begin{tabular}{l@{\hspace*{1cm}}l}
-\includegraphics[height=4cm, width=10cm]{mitch} &
+\includegraphics[height=4cm, width=10cm]{mitch2} &
 \includegraphics[height=4cm, width=10cm]{earowang} \\
 Mitchell O'Hara-Wild &
 Earo Wang \\
