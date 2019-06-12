@@ -194,14 +194,14 @@ holidays %>% STL(Trips ~ season(window = "periodic")) %>%
 \fontsize{9}{10}\sf
 
 ```{r features}
-tourism %>% features(Trips, features_stl)
+tourism %>% features(Trips, feature_set(tags="stl"))
 ```
 
 ## Feature extraction and statistics
 \fontsize{8}{9}\sf
 
 ```{r features-plot, fig.height=4.6}
-tourism %>% features(Trips, features_stl) %>%
+  tourism %>% features(Trips, feature_set(tags=c("stl"))) %>%
   ggplot(aes(x=trend_strength, y=seasonal_strength_year, col=Purpose)) +
     geom_point() + facet_wrap(vars(State))
 ```
@@ -221,7 +221,7 @@ Find the most seasonal time series:
 
 ```{r extreme}
 most_seasonal <- tourism %>%
-  features(Trips, features_stl) %>%
+  features(Trips, feature_set(tags="stl")) %>%
   filter(seasonal_strength_year == max(seasonal_strength_year))
 ```
 
@@ -267,7 +267,7 @@ pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
 endpdf()
 # Find outliers
 outliers <- pcs %>%
-  filter(.fittedPC1 == max(.fittedPC1) | 
+  filter(.fittedPC1 == max(.fittedPC1) |
          (.fittedPC1 > 10 & .fittedPC2 > 2.5))
 savepdf("pca4", 18, 10)
 pcs %>% ggplot(aes(x=.fittedPC1, y=.fittedPC2, col=Purpose)) +
