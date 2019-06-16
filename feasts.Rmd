@@ -411,13 +411,19 @@ pcs %>%
 Mitchell O'Hara-Wild &
 Earo Wang \\
 \end{tabular}
-\end{block}
-
-\vspace*{1cm}
+\end{block}\vspace*{-0.15cm}
 
 \begin{alertblock}{}
 \centerline{\textbf{feasts.tidyverts.org}}
 \centerline{\textbf{robjhyndman.com}}
 \end{alertblock}
+
+\only<2>{\begin{textblock}{10.8}(1,7.8)
+\begin{block}{}\centering
+Monash Uni is now hiring in business analytics.\\
+See \textbf{\url{bit.ly/monash-ba}} for details.
+\end{block}
+\end{textblock}}
+
 
 \vspace*{10cm}
