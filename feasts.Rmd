@@ -1,7 +1,7 @@
 ---
 title: "A feast of time&nbsp;series&nbsp;tools"
 author: "Rob J Hyndman"
-date: "June 2019"
+date: "July 2019"
 colortheme: monashblue
 titlefontsize: 22pt
 toc: true
